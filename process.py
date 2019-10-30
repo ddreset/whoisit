@@ -9,6 +9,7 @@ import shutil
 from array import array
 
 weight_set_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "weight_sets")
+# content of all set.json
 weight_sets = []
 
 
@@ -27,6 +28,7 @@ discover_weight_set()
 
 
 template_set_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "templates")
+# name of all folders in ./templates
 template_paths = []
 
 
@@ -45,7 +47,9 @@ class Runner:
 
     def __init__(self):
         self.running = False
+        # start with weight_sets[0], get a network with the chosen weights
         self.setup(0)
+        # start with template[0], get pic data array and label array
         self.change_template(0)
         self.collect_template_flag = -1
 
@@ -57,29 +61,41 @@ class Runner:
         print(template_paths[self.template_index])
         return True
 
+    def use_temporary_template(self, template_list):
+        if template_list is None:
+            return False
+        
+        self.templates, self.template_labels, self.label_dict = dataformat.read_template_urls(self.formatter, template_list)
+            
+
     def setup(self, index):
         self.index = index
         if len(weight_sets) <= self.index:
             return False
-        s = weight_sets[self.index]["size"]
+        s = weight_sets[self.index]["size"] # e.g. [256,32]
         self.size = (s[0], s[1])
         self.num_layers = weight_sets[self.index]["num_layers"]
         self.session_name = "weight_sets/" + weight_sets[self.index]["session_name"]
 
+        # get contour data and labels of pics from /data folder
         self.formatter = dataformat.DataFormat(self.size[0])
 
+        # close the running session, because we are gonna start a new one.
         self.close_down()
 
         print(self.session_name)
+        # initialize model
         num_intra_class = 10
         num_inter_class = 20
         self.comparator = momentnet.Comparator((2, self.size[0]), self.size[1], num_intra_class=num_intra_class, num_inter_class=num_inter_class, layers=self.num_layers)
 
+        # start new session
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True
         self.running = True
         self.sess = tf.Session(config=config)
         self.sess.run(tf.global_variables_initializer())
+        # load the chosen session = load the chosen weights
         self.comparator.load_session(self.sess, self.session_name)
         return True
 
@@ -87,7 +103,7 @@ class Runner:
         if not self.running:
             return None
 
-        if isinstance(frames, list):
+        if isinstance(frames, list): # a few pictures
             data = np.zeros([len(frames), 2, self.size[0]], dtype=np.float32)
             for i, frame in enumerate(frames):
                 data[i, ...] = self.formatter.format(frame)
@@ -96,13 +112,18 @@ class Runner:
             classes = self.template_labels[c, 0]
             flip_or_not = self.template_labels[c, 1]
 
-        else:
+        else: # one picture
             frame = frames
+            # extract contour data pic
             data = self.formatter.format(frame)
+            # predict class and raw confidence
             c, raw = self.comparator.process(self.sess, np.reshape(data, [-1, self.size[0] * 2]), np.reshape(self.templates, [-1, self.size[0] * 2]))
+            print("raw:")
+            print(raw)
             raw = raw[:, c].flatten()
             classes = self.template_labels[c, 0]
             flip_or_not = self.template_labels[c, 1]
+            # if template flag is set, upload pic to chosen template folder with proper filename.
             if self.collect_template_flag >= 0:
                 print(self.collect_template_flag)
                 dataformat.write_to_template_directory(frame, random.randint(0, 100000), self.collect_template_flag, self.formatter, template_paths[self.template_index])

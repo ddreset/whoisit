@@ -102,6 +102,7 @@ def extract_contour(image):
     if image.dtype is not np.uint8:
         image = image.astype(np.uint8)
     im2, contours, hierarchy = cv2.findContours(image, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
+    # contours, hierarchy = cv2.findContours(image, cv2.RETR_LIST, cv2.CHAIN_APPROX_NONE)
     largest = None
     c_size = 0
     for i in range(len(contours)):

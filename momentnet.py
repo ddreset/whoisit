@@ -151,8 +151,11 @@ class Comparator:
         # with tf.contrib.tfprof.ProfileContext(pwd, trace_steps=[], dump_steps=[]) as pctx:
 
         if session is None:
+            # configure session
             config = tf.ConfigProto()
+            # dynamically grow the memory used on the GPU
             config.gpu_options.allow_growth = True
+            # to log device placement (on which device the operation ran)
             config.log_device_placement = True
             sess = tf.Session(config=config)
         else:

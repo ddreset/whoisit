@@ -1,0 +1,14 @@
+{
+    "api_version": "1.0",
+    "date_created": "2019-10-18 10:48:18",
+    "from_date": null,
+    "num_layers": 5,
+    "output_classes": 16,
+    "session_name": "test_1/test",
+    "set_list": "dataset_1",
+    "size": [
+        256,
+        32
+    ],
+    "to_date": null
+}

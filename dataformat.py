@@ -48,14 +48,21 @@ class DataFormat:
         series = np.stack([r, t])
         return series
 
-    def read_datafile(self, filepath):
-        filename = os.path.basename(filepath)
+    def read_datafile(self, filepath, url=None):
         img = cv2.imread(filepath)
+        filename = os.path.basename(filepath)
         scale = (self.size[0] / img.shape[1], self.size[1] / img.shape[0])
         label_box = parse_filename(filename, scale)
         series = self.format(img)
         return series, label_box, filename, img
 
+    def read_data_from_url(self, label, url ):
+        img = util.url_to_image(url)
+        filename = "0."+str(label)+".0,0,100,100.jpg"
+        scale = (self.size[0] / img.shape[1], self.size[1] / img.shape[0])
+        label_box = parse_filename(filename, scale)
+        series = self.format(img)
+        return series, label_box, filename, img
 
 def save_training_data(setname, frame, label, x1, y1, x2, y2):
 
@@ -106,6 +113,7 @@ def read_data_directory(formatter, from_date, to_date, set_list):
                 if check_inclusion(parse_date_string(datename), from_date, to_date):
                     date_dir = os.path.join(set_dir, datename)
                     for filename in os.listdir(date_dir):
+                        print(filename)
                         ts, label, _, __ = formatter.read_datafile(os.path.join(date_dir, filename))
                         data.append(ts)
                         labels.append(label)
@@ -169,6 +177,51 @@ def read_template_directory(formatter, path, with_flip=False, return_raw=False):
         return data, labels, raws
     else:
         return data, labels
+
+def read_template_urls(formatter, template_list, with_flip=False, return_raw=False):
+    data = []
+    labels = []
+    label_dict = {}
+
+    index = 1
+    raws = []
+    for label, value in template_list.items():
+        label_dict[index] = label
+        for url in value:
+            ts,label_box,__,__ = formatter.read_data_from_url(index,url)
+            if label_box[1] < 0:
+                label_box[1] = -1
+                data.append(ts)
+                labels.append(label_box.copy())
+                if return_raw:
+                    raws.append(raw)
+                if with_flip:
+                    data.append(np.flip(ts, axis=-1))
+                    label_box[1] = 1
+                    labels.append(label_box.copy())
+                    if return_raw:
+                        raws.append(raw)
+            else:
+                label_box[1] = 1
+                data.append(ts)
+                labels.append(label_box.copy())
+                if return_raw:
+                    raws.append(raw)
+                if with_flip:
+                    data.append(np.flip(ts, axis=-1))
+                    label_box[1] = -1
+                    labels.append(label_box.copy())
+                    if return_raw:
+                        raws.append(raw)
+        index = index + 1
+
+    data = np.asarray(data, dtype=np.float32)
+    labels = np.asarray(labels, dtype=np.int32)
+    if return_raw:
+        return data, labels,label_dict, raws
+    else:
+        return data, labels, label_dict
+        
 
 
 if __name__ == '__main__':

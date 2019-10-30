@@ -2,8 +2,9 @@ import os
 import shutil
 
 pwd = os.path.dirname(os.path.realpath(__file__))
-hierarchy_path = os.path.join(pwd, "..", "..", "playground_cat_template")
-target_path = os.path.join(pwd, "..", "..", "playground_templates")
+# hierarchy_path = os.path.join(pwd, "..", "..", "playground_cat_template")
+hierarchy_path = os.path.join(pwd, "categories_temp",)
+target_path = os.path.join(pwd, "categories_generate_temp")
 if not os.path.exists(target_path):
     os.makedirs(target_path)
 

@@ -67,7 +67,6 @@ def flip_data(data, as_diff_class=True):
 
 
 if __name__ == '__main__':
-
     from_date = dataformat.parse_date_string(args.from_date)
     to_date = dataformat.parse_date_string(args.to_date)
     if args.list is not None:
@@ -122,12 +121,17 @@ if __name__ == '__main__':
 
     data, labels = dataformat.read_data_directory(formatter, from_date, to_date, set_list)
     unflip_data(data, labels)
+    # make every category has same amount of data
     data, labels = balance_labels(data, labels, num_classes)
+    # double data
     data = flip_data(data, as_diff_class=True)
     print(data.shape, labels.shape)
-
+    
+    # intra = within
     num_intra_class = 10
     num_inter_class = 20
     comparator = momentnet.Comparator((2, input_size[0]), input_size[1], num_intra_class=num_intra_class, num_inter_class=num_inter_class, layers=num_layers)
 
+    # session_name here is where session is saved
     comparator.train(data, session_name="weight_sets/" + session_name, batch_size=min(100, labels.shape[0] * 2), max_iteration=iterations, continue_from_last=args.cont)
+    

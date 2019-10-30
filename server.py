@@ -46,14 +46,16 @@ def parse_image_contained_body(request_handler):
 
     return ref_number, image, images
 
-
 class ImageHandler(tornado.web.RequestHandler):
     def post(self):
 
         ref_number, image, images = parse_image_contained_body(self)
+        print("second: " + str(runner.running))
 
         if image is not None:
             frame = util.base64string2array(image[22:])
+            print("frame shape:")
+            print(frame.shape)
             classes, raw, flip_or_not = runner.process(frame)
             if classes is None:
                 self.write("The network has yet been setup.")
@@ -212,6 +214,43 @@ class DownloadHandler(tornado.web.RequestHandler):
             self.write(data)
         self.finish()
 
+class ClassifyHandler(tornado.web.RequestHandler):
+    def post(self):
+
+        if "json" in self.request.headers.get('Content-Type'):
+            try:
+                json_data = json.loads(self.request.body)
+                if 'reference' in json_data:
+                    ref_number = json_data["reference"]
+                if 'image' in json_data:
+                    image = json_data["image"]
+                if 'templates' in json_data:
+                    template_list = json_data["templates"]
+            except ValueError:
+                message = 'Unable to parse JSON.'
+                self.send_error(400, message=message)  # Bad Request
+        else:
+            message = 'Unable to parse JSON.'
+            self.send_error(400, message=message)  # Bad Request
+        
+        # set templates
+        runner.use_temporary_template(template_list)
+        
+        if image is not None:
+            frame = util.base64string2array(image[22:])
+            classes, raw, flip_or_not = runner.process(frame)
+            if classes is None:
+                self.write("The network has yet been setup.")
+            else:
+                if runner.label_dict is not None:
+                    classes = runner.label_dict[classes[0]]
+                msg = ("{\"reference\":\"" + str(ref_number) + "\","
+                       "\"classes\":" + str(classes)+ ","
+                       "\"raw\":" + util.np2json(raw) + ","
+                       "\"flip\":[true]}"
+                       )
+                self.write(msg)
+
 
 def make_app():
     return tornado.web.Application([
@@ -220,8 +259,9 @@ def make_app():
         (r"/collect", SampleHandler),
         (r"/template", TemplateHandler),
         (r"/download.tar.gz", DownloadHandler),
+        (r"/classify/newTemplates", ClassifyHandler),
         (r'/(.*)', tornado.web.StaticFileHandler, {'path': static_path})
-    ])
+    ],debug=True)
 
 
 if __name__ == "__main__":
@@ -231,6 +271,7 @@ if __name__ == "__main__":
         "keyfile": os.path.join(os.path.dirname(__file__), "artifacts", "domain.key")
     })
     http_server.listen(7788)
-    webbrowser.open("https://localhost:7788/index.html")
+    # webbrowser.open("https://localhost:7788/index.html")
     tornado.ioloop.IOLoop.instance().start()
     runner.close_down()
+    print("first: " + str(runner.running))

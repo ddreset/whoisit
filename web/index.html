@@ -85,12 +85,14 @@
                 reader.onload = (function(aImg) {
                     return function(e) {
                         aImg.src = e.target.result;
+                        console.log("e.target.result");
                         console.log(e.target.result);
                         var msg = {};
                         msg["image"] = e.target.result;
                         msg["reference"] = new Date().getTime().toString();
                         $.post("/classify", msg, function(data) {
                             var json = JSON.parse(data);
+                            console.log("json:");
                             console.log(json);
                             ctx.fillStyle="#FFFFFF";
                             for (var j = 0; j < json["classes"].length; ++j) {

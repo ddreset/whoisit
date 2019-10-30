@@ -5,6 +5,7 @@ from PIL import Image
 from io import BytesIO
 import time
 import base64
+import urllib
 
 
 def convert_1_2_255x3(img):
@@ -177,6 +178,16 @@ def np2json(ary):
             strary = strary + np2json(ary[i, ...])
     return strary + "]"
 
+def url_to_image(url):
+	# download the image, convert it to a NumPy array, and then read
+	# it into OpenCV format
+    req = urllib.request.Request(url, headers={'User-Agent': 'Mozilla/5.0'})
+    with urllib.request.urlopen(req) as resp:
+        image = np.asarray(bytearray(resp.read()), dtype="uint8")
+        image = cv2.imdecode(image, cv2.IMREAD_COLOR)
+        # return the image
+        return image
+    return False
 
 if __name__ == '__main__':
     print(np2json(np.asarray([[[1], [2], [3]], [[4], [5], [6]]], dtype=np.float32)))
