@@ -1,0 +1,13 @@
+# security files
+*.crt
+*.key
+*.pem
+
+# auto generted files
+/__pycache__
+/.ipynb_checkpoints
+
+# project folders
+/tasks/categories_generate_temp
+/tasks/categories_temp
+/web/morph_data
