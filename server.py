@@ -6,11 +6,15 @@ import json
 import process
 import dataformat
 import util
+import crop_mosaic
+import semanticquery
 
 
 static_path = os.path.join(os.path.dirname(__file__), "./web")
 
 runner = process.Runner()
+
+cropper = crop_mosaic.Cropper()
 
 
 def parse_image_contained_body(request_handler):
@@ -46,6 +50,7 @@ def parse_image_contained_body(request_handler):
 
     return ref_number, image, images
 
+# classify image with current weight set and template
 class ImageHandler(tornado.web.RequestHandler):
     def post(self):
 
@@ -83,7 +88,7 @@ class ImageHandler(tornado.web.RequestHandler):
                        )
                 self.write(msg)
 
-
+# allow user to add training pic with given weight_set and label
 class SampleHandler(tornado.web.RequestHandler):
     def post(self):
 
@@ -135,7 +140,7 @@ class SampleHandler(tornado.web.RequestHandler):
             dataformat.save_training_data(setname, frame, int(label), int(float(x1)), int(float(y1)), int(float(x2)), int(float(y2)))
             self.write("Done!")
 
-
+# set uploading picture's label
 class TemplateHandler(tornado.web.RequestHandler):
     def get(self):
         print("not support")
@@ -146,7 +151,8 @@ class TemplateHandler(tornado.web.RequestHandler):
             label = label_[0]
         runner.raise_template_flag(label)
 
-
+# get weight set list and template list
+# choose weight set and template
 class SetHandler(tornado.web.RequestHandler):
 
     def get(self):
@@ -205,7 +211,25 @@ class SetHandler(tornado.web.RequestHandler):
 
         self.write("{\"result\":" + ("true" if result else "false") + "}")
 
+class UpdateDBpediaTemplateHandler(tornado.web.RequestHandler):
+    def post(self,animalName):
+        animalName = animalName.capitalize()
+        animals = semanticquery.getAnimals(animalName)
+        if len(animals) > 0:
+            file_num = runner.count_templates(animalName)
+            if file_num == 0:
+                runner.update_templates_folder(animalName, animals, cropper)
+                self.write({"success": True,"templates_list":templates_list})
+            else:
+                self.write({"success": None})
+            # change template 
+            templates_list,__ = runner.get_template_sets()
+            template_index = templates_list.index(animalName)
+            result = runner.change_template(template_index)
+        else:
+            self.write({"success": False})
 
+# download current weight set and templates
 class DownloadHandler(tornado.web.RequestHandler):
     def get(self):
         path = runner.archive_selected()
@@ -214,6 +238,7 @@ class DownloadHandler(tornado.web.RequestHandler):
             self.write(data)
         self.finish()
 
+# classify image with temporary templates(not saving these templates)
 class ClassifyHandler(tornado.web.RequestHandler):
     def post(self):
 
@@ -251,15 +276,45 @@ class ClassifyHandler(tornado.web.RequestHandler):
                        )
                 self.write(msg)
 
+# crop 1 pic
+# return cropping coordinates
+class CropHandler(tornado.web.RequestHandler):
+    def post(self):
+        if "json" in self.request.headers.get('Content-Type'):
+            try:
+                json_data = json.loads(self.request.body)
+                if 'url' in json_data:
+                    imgUrl = json_data["url"]
+            except ValueError:
+                message = 'Unable to parse JSON.'
+                self.send_error(400, message=message)  # Bad Reques
+        else:
+            message = 'Unable to parse JSON.'
+            self.send_error(400, message=message)  # Bad Request
+        img = crop_mosaic.read_image(imgUrl)
+        imgList, coordinates = crop_mosaic.crop(cropper.model,img)
+
+        msg = ("{\"coordinates\":"+str(coordinates)+"}")
+        self.write(msg)
+
+# return a list of animals with their uri and thumbnail's url
+class SubAnimalHandler(tornado.web.RequestHandler):
+    def get(self, animalName):
+        animalName = animalName.capitalize()
+        resultJson = semanticquery.getAnimals(animalName)
+        self.write({"results":resultJson})
 
 def make_app():
     return tornado.web.Application([
         (r"/classify", ImageHandler),
         (r"/set", SetHandler),
+        (r"/set/dbpedia/([0-9a-zA-Z_]+)", UpdateDBpediaTemplateHandler),
         (r"/collect", SampleHandler),
         (r"/template", TemplateHandler),
         (r"/download.tar.gz", DownloadHandler),
         (r"/classify/newTemplates", ClassifyHandler),
+        (r"/crop", CropHandler),
+        (r"/dbpedia/subEntity/([0-9a-zA-Z_]+)", SubAnimalHandler),
         (r'/(.*)', tornado.web.StaticFileHandler, {'path': static_path})
     ],debug=True)
 

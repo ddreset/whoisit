@@ -6,7 +6,9 @@ import tensorflow as tf
 import json
 import dataformat
 import shutil
+import crop_mosaic
 from array import array
+from datetime import datetime
 
 weight_set_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "weight_sets")
 # content of all set.json
@@ -54,6 +56,7 @@ class Runner:
         self.collect_template_flag = -1
 
     def change_template(self, template_index):
+        discover_template_set()
         if len(template_paths) < template_index:
             return False
         self.template_index = template_index
@@ -67,7 +70,6 @@ class Runner:
         
         self.templates, self.template_labels, self.label_dict = dataformat.read_template_urls(self.formatter, template_list)
             
-
     def setup(self, index):
         self.index = index
         if len(weight_sets) <= self.index:
@@ -177,6 +179,39 @@ class Runner:
 
         write_model_weight(web_dir, weights, "model/model")
 
+    def count_templates(self, folder_name):
+        folder_path = os.path.join(template_set_path, folder_name)
+        if (not os.path.exists(folder_path)) or (not os.path.isdir(folder_path)):
+            os.mkdir(folder_path)
+            # update template sets
+            discover_template_set()
+        file_num = len({name.split(".")[0] for name in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, name))})
+        return file_num
+
+    def update_templates_folder(self, template_name, templates_list, cropper):
+        folder_path = os.path.join(template_set_path, template_name)
+        if (not os.path.exists(folder_path)) or (not os.path.isdir(folder_path)):
+            os.mkdir(folder_path)
+            discover_template_set()
+        # write in to log file
+        with open(template_set_path+"/"+template_name+".txt", "w") as file:
+            json.dump({
+                "templates":templates_list,
+                "date_created": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }, file, sort_keys=True, indent=4)
+
+        label = 1
+        for template in templates_list:
+            # crop
+            img = crop_mosaic.read_image(template["thumbnail"])
+            if img is not None:
+                cropped_img,__ = crop_mosaic.crop(cropper.model,img)
+                # save images/image and update log 
+                counter = 0
+                for cropped in cropped_img:
+                    cropped.save(folder_path+"/"+str(counter) +"."+str(label)+".0,0,100,100.png")
+                    counter = counter + 1
+            label = label + 1
 
 def write_model_weight(root, weights, name):
     outfile_name = name + ".json"

@@ -3,6 +3,7 @@ import requests
 from io import BytesIO
 import cv2
 import numpy as np
+import os
 from matplotlib import pyplot as plt
 from keras.models import *
 from keras.layers import Dense, Activation, Conv2D, concatenate
@@ -57,21 +58,22 @@ def unet(pretrained_weights = None,input_size = (256,256,1)):
 
     model.compile(optimizer = Adam(lr = 1e-4), loss = 'binary_crossentropy', metrics = ['accuracy'])
     
-    model.summary()
+    # model.summary()
 
     if(pretrained_weights):
     	model.load_weights(pretrained_weights)
 
     return model
 
-model = unet()
-model = load_model('crop_mosaic_model.h5')
-
 # input size of model is (256,256)
 def read_image(url):
     response = requests.get(url)
-    img = Image.open(BytesIO(response.content))
-    return img
+    try:
+        img = Image.open(BytesIO(response.content))
+        return img
+    except(OSError, NameError):
+        print('OSError, url:',url)
+    return None
 
 def preprocess(imgArray):
     imgArray = cv2.blur(imgArray, (2,2))
@@ -146,7 +148,8 @@ def get_bounding_box(boxArray,Rows,Columns):
                         break
     return bounding_box
 
-def crop(image):
+def crop(cropModel, image):
+    model = cropModel
     imgArray = np.asarray(image.resize((256,256)))
     model_input = preprocess(imgArray)
     model_output = model.predict(model_input[0:])
@@ -158,14 +161,38 @@ def crop(image):
     # column scale, row scale
     scale = [image.size[0]/256,image.size[1]/256]
     cropped_img = []
+    coordinates = []
     for box in boxes:
         # (left, top, right, bottom)
         coordinate = (box[1]*scale[0],box[0]*scale[1],box[3]*scale[0],box[2]*scale[1])
+        # if height/width ratio is larger than 3:1 or smaller than 1:3, skip it
+        box_ratio = (coordinate[3]-coordinate[1])/(coordinate[2]-coordinate[0])
+        if box_ratio >= 3 or box_ratio <= 0.3:
+            continue
         cropped = image.crop(coordinate)
         cropped_img.append(cropped)
-    return cropped_img
+        coordinates.append(coordinate)
+    return cropped_img, coordinates
+
+class Cropper:
+    def __init__(self):
+        self.model = unet()
+        self.model = load_model('crop_mosaic_model.h5')
+
+
 
 if __name__ == '__main__':
+    model = unet()
+    model = load_model('crop_mosaic_model.h5')
     url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Family_Cervidae_five_species.jpg/300px-Family_Cervidae_five_species.jpg"
     image = read_image(url)
-    crop(image)
+    imgs,__ = crop(model,image)
+    dirname = os.path.dirname(__file__)
+    path = os.path.join(dirname, 'templates/test')
+    if (not os.path.exists(path)) or (not os.path.isdir(path)):
+        os.mkdir(path)
+    i = 0
+    for img in imgs:
+        # img.show()
+        img.save("templates/test/"+str(i)+".jpg")
+        i = i + 1
