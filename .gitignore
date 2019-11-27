@@ -2,6 +2,8 @@
 *.crt
 *.key
 *.pem
+# model
+*.h5
 
 # auto generted files
 /__pycache__

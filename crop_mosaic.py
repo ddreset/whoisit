@@ -176,13 +176,11 @@ def crop(cropModel, image):
 
 class Cropper:
     def __init__(self):
-        self.model = unet()
         self.model = load_model('crop_mosaic_model.h5')
 
 
 
 if __name__ == '__main__':
-    model = unet()
     model = load_model('crop_mosaic_model.h5')
     url = "https://upload.wikimedia.org/wikipedia/commons/thumb/d/d9/Family_Cervidae_five_species.jpg/300px-Family_Cervidae_five_species.jpg"
     image = read_image(url)
