@@ -13,3 +13,6 @@
 /tasks/categories_generate_temp
 /tasks/categories_temp
 /web/morph_data
+
+# environment folder
+/venv
