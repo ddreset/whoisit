@@ -8,6 +8,7 @@
 # auto generted files
 /__pycache__
 /.ipynb_checkpoints
+/.vscode
 
 # project folders
 /tasks/categories_generate_temp
