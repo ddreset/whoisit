@@ -16,6 +16,9 @@ runner = process.Runner()
 
 cropper = crop_mosaic.Cropper()
 
+class MainHandler(tornado.web.RequestHandler):
+    def get(self):
+        self.redirect('/index.html')
 
 def parse_image_contained_body(request_handler):
 
@@ -215,19 +218,22 @@ class UpdateDBpediaTemplateHandler(tornado.web.RequestHandler):
     def post(self,animalName):
         animalName = animalName.capitalize()
         animals = semanticquery.getAnimals(animalName)
+        msg = {}
         if len(animals) > 0:
             file_num = runner.count_templates(animalName)
             if file_num == 0:
                 runner.update_templates_folder(animalName, animals, cropper)
-                self.write({"success": True,"templates_list":templates_list})
+                msg["success"] = True
             else:
-                self.write({"success": None})
+                msg["success"] = None
             # change template 
             templates_list,__ = runner.get_template_sets()
             template_index = templates_list.index(animalName)
             result = runner.change_template(template_index)
+            msg["templates_list"] = templates_list
         else:
-            self.write({"success": False})
+            msg["success"] = False
+        self.write(msg)
 
 # download current weight set and templates
 class DownloadHandler(tornado.web.RequestHandler):
@@ -306,6 +312,7 @@ class SubAnimalHandler(tornado.web.RequestHandler):
 
 def make_app():
     return tornado.web.Application([
+        (r"/", MainHandler),
         (r"/classify", ImageHandler),
         (r"/set", SetHandler),
         (r"/set/dbpedia/([0-9a-zA-Z_]+)", UpdateDBpediaTemplateHandler),

@@ -1,153 +1,182 @@
+<!doctype html>
 <html>
 
 <head>
-    <meta charset="utf-8">
-    <meta content="stuff, to, help, search, engines, not" name="keywords">
-    <meta content="What this page is about." name="description">
-    <meta content="Image uploader" name="title">
-    <title>Image uploader</title>
+    <meta charset="utf-8" />
+    <!-- Compiled and minified CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/css/materialize.min.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
+    <link rel="stylesheet" href="css/style.css">
     <script src="jquery-3.2.1.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0/js/materialize.min.js"></script>
+    <script src="opencv.js" type="text/javascript"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@0.14.1/dist/tf.min.js"> </script>
+    <script src="preprocessing.js"></script>
+    <script src="shadow.js"></script>
+    <script src="morph.js"></script>
 </head>
 
 <body>
-    <div id="placeholder">
-    </div>
-    <div id="placeholder2">
-    </div>
-    <canvas id="canvas" width="512" height="512" style="border:1px solid #000000;">
-    </canvas>
-    <input type="file" id="input" onchange="submit(this.files)">
-    <input type="button" id="collect_template" onclick="raise_collect_template()" value="Collect template">
-    <select name="raise collect template" id="template_label">
-    	<option value="0">0</option>
-    	<option value="1">1</option>
-    	<option value="2">2</option>
-    	<option value="3">3</option>
-    	<option value="4">4</option>
-    	<option value="5">5</option>
-    	<option value="6">6</option>
-    	<option value="7">7</option>
-    	<option value="8">8</option>
-    	<option value="9">9</option>
-    	<option value="10">10</option>
-    	<option value="11">11</option>
-    	<option value="12">12</option>
-    </select>
-    <a download href="/download.tar.gz">Download selected</a>
 
+    <!-- Dropdown Structure -->
+    <ul id="template-list" class="dropdown-content">
+        <li><a href="#Zodiac">Zodiac</a></li>
+        <li class="divider"></li>
+        <li><a href="#Rat">Rat</a></li>
+        <li><a href="#Ox">Ox</a></li>
+        <li><a href="#Tiger">Tiger</a></li>
+        <li><a href="#Rabbit">Rabbit</a></li>
+        <li><a href="#Dragon">Dragon</a></li>
+        <li><a href="#Snake">Snake</a></li>
+        <li><a href="#Horse">Horse</a></li>
+        <li><a href="#Goat">Goat</a></li>
+        <li><a href="#Monkey">Monkey</a></li>
+        <li><a href="#Rooster">Rooster</a></li>
+        <li><a href="#Dog">Dog</a></li>
+        <li><a href="#Pig">Pig</a></li>
+    </ul>
+    <nav>
+        <div class="nav-wrapper container">
+            <a id="logo-container" href="#" class="brand-logo white-text">Shadowplay experiment</a>
+            <ul class="right hide-on-med-and-down">
+                <!-- Dropdown Trigger -->
+                <li><a class="dropdown-trigger" href="#!" data-target="template-list">choose scope<i
+                            class="material-icons right">arrow_drop_down</i></a></li>
+            </ul>
+        </div>
+    </nav>
     <script>
-    $(document).ready(function() {
-
-        $.get("/set", function(data) {
-            sets = JSON.parse(data)["sets"];
-            checked_index = JSON.parse(data)["current"] || 0;
-            templates = JSON.parse(data)["templates"];
-            checked_template = JSON.parse(data)["current_template"] || 0;
-            for (var i = 0; i < sets.length; ++i) {
-
-                button_tag = '<input id="button_' + i + '" type="radio" name="weight_set" onclick="change_set(' + i + ')" />';
-                if(i == checked_index) {
-                    button_tag = button_tag.substring(0, button_tag.length-2) + "checked />'";
-                }
-                
-                var $input = $(button_tag);
-                var $label = $('<label for="button_' + i + '">' + sets[i]["session_name"] + '</label>');
-                $input.appendTo($("#placeholder"));
-                $label.appendTo($("#placeholder"))
-            }
-
-            for (var i = 0; i < templates.length; ++i) {
-
-                button_tag = '<input id="template_' + i + '" type="radio" name="template_set" onclick="change_template(' + i + ')" />';
-                if(i == checked_template) {
-                    button_tag = button_tag.substring(0, button_tag.length-2) + "checked />'";
-                }
-                
-                var $input = $(button_tag);
-                var $label = $('<label for="template_' + i + '">' + templates[i] + '</label>');
-                $input.appendTo($("#placeholder2"));
-                $label.appendTo($("#placeholder2"))
-            }
-
-        });
-
-        var c = document.getElementById("canvas");
-        var ctx = c.getContext("2d");
-
-        var img = new Image(512, 512); // using optional size for image
-        img.onload = drawImageActualSize; // draw when image has loaded
-
-        window.submit = function(files) {
-            console.log(files.length);
-            for (var i = 0, numFiles = files.length; i < numFiles; i++) {
-                var file = files[i];
-                var reader = new FileReader();
-                reader.onload = (function(aImg) {
-                    return function(e) {
-                        aImg.src = e.target.result;
-                        console.log("e.target.result");
-                        console.log(e.target.result);
-                        var msg = {};
-                        msg["image"] = e.target.result;
-                        msg["reference"] = new Date().getTime().toString();
-                        $.post("/classify", msg, function(data) {
-                            var json = JSON.parse(data);
-                            console.log("json:");
-                            console.log(json);
-                            ctx.fillStyle="#FFFFFF";
-                            for (var j = 0; j < json["classes"].length; ++j) {
-                                ctx.fillStyle="#FFFFFF";
-                                ctx.fillRect(40,35 + 20*j,150,20);
-                                ctx.fillStyle="#000000";
-                                ctx.font="18px Arial";
-                                ctx.fillText(json["classes"][j].toString() + " " + json["raw"][j].toString() + " " + (json["flip"][j]? "flip":"nope"), 50, 50 + 20*j);
-                            }
-
+        $(document).ready(function () {
+            $(".dropdown-trigger").dropdown({
+                onCloseEnd: function (el) {
+                    templateName = window.location.href.split("#")[1];
+                    success = null;
+                    if (templateName != "Zodiac") {
+                        $.post("/set/dbpedia/" + templateName, null, function (data) {
+                            success = data.success;
+                            console.log(data);
                         });
-                    };
-                })(img);
-                reader.readAsDataURL(file);
-            }
-        };
-
-        function drawImageActualSize() {
-            canvas.width = this.naturalWidth;
-            canvas.height = this.naturalHeight;
-            ctx.drawImage(this, 0, 0, this.width, this.height);
+                    } else {
+                        var msg = {};
+                        msg["template"] = 0;
+                        $.post("/set", msg, function (data) {
+                            success = data.success;
+                            console.log(data);
+                        });
+                    }
+                    if (success != false) {
+                        el.firstChild.textContent = "scope: " + templateName;
+                    }
+                }
+            });
+        });
+    </script>
+    <div class="row">
+        <div id="display_container" class="col s6 m4">
+        </div>
+        <div id="sample_container" class="col s6 m4">
+        </div>
+        <div id="draw_container" class="col s6 m4">
+        </div>
+    </div>
+    <footer class="page-footer light-red gram-footer">
+        <div class="footer-copyright">
+            <div class="container"><a href="http://bit.studio" class="white-text text-lighten-3"></a></div>
+        </div>
+    </footer>
+    <script>
+        function getParameterByName(name, url) {
+            if (!url) url = window.location.href;
+            name = name.replace(/[\[\]]/g, '\\$&');
+            var regex = new RegExp('[?&]' + name + '(=([^&#]*)|&|#|$)'),
+                results = regex.exec(url);
+            if (!results) return null;
+            if (!results[2]) return '';
+            return decodeURIComponent(results[2].replace(/\+/g, ' '));
         }
 
-    });
+        var loop_duration = 2;
+        var total_loop = 1;
+        var FPS = 30;
+        var width = parseInt($(window).width() / 3 - 30);
+        var height = width;
+        var moon_rad = width * 0.4;
+        canvasElement = $('<canvas id="drawFrame" width="' + width + '" height="' + height + '"></canvas>');
+        $('#draw_container').append(canvasElement);
+        drawFrame = document.getElementById("drawFrame"); // canvasFrame is the id of <canvas>
+        ctx = drawFrame.getContext("2d");
 
+        var draw_preview = true;
+        var controls = init_preprocessing(parseInt($(window).width() / 3 - 30), $('#display_container'), $('#sample_container'), function (contour_obj) {
+            console.log("draw contour here!");
+            var nps = contour_obj.set_canvas(0, 0, width, height, 256);
 
-    window.change_set = function(index) {
-        console.log(index);
-        var msg = {};
-        msg["index"] = index;
-        $.post("/set", msg, function(data) {
-            var json = JSON.parse(data);
-            console.log(json);
+            if (!draw_preview) return;
+            draw_preview = false;
+
+            prepare_morph(nps, contour_obj["class"][0], 0, 0, width, height, function (morph_object) {
+
+                var start_time = Date.now();
+                var loop_count = 0;
+
+                function drawDemo() {
+                    let begin = Date.now();
+                    let elapsed = (Date.now() - start_time) / 1000.0;
+
+                    var contours = morph_object(elapsed * 2.0 / loop_duration - 1.0);
+                    drawContour(contours);
+
+                    if (elapsed > loop_duration) {
+                        loop_count = loop_count + 1;
+                        start_time = Date.now();
+                    }
+
+                    if (loop_count < total_loop) {
+                        let delay = 1000 / FPS - (Date.now() - begin);
+                        setTimeout(drawDemo, delay);
+                    } else {
+                        draw_preview = true;
+                    }
+                }
+
+                setTimeout(drawDemo, 0);
+
+            });
+
+        }, function (contour_obj) {
+
+            if (!contour_obj) return;
+            var contours = contour_obj.set_canvas(0, 0, width, height);
+            if (draw_preview)
+                drawContour(contours);
+
+        }, function (percent) {
+            console.log(percent);
         });
-    };
 
-    window.change_template = function(index) {
-        console.log(index);
-        var msg = {};
-        msg["template"] = index;
-        $.post("/set", msg, function(data) {
-            var json = JSON.parse(data);
-            console.log(json);
-        });
-    };
+        function drawContour(contours) {
+            ctx.fillStyle = "black";
+            ctx.fillRect(0, 0, width, height);
 
-    window.raise_collect_template = function() {
-    	var label = $("#template_label").val()
-    	console.log(label);
-        var msg = {};
-        msg["label"] = label;
-        $.post("/template", msg, function(data) {
-            
-        });	
-    }
+            ctx.beginPath();
+            ctx.arc(width / 2, height / 2, moon_rad, 0, 2 * Math.PI, false);
+            ctx.fillStyle = '#FEFCD7';
+            ctx.fill();
+
+            ctx.fillStyle = '#000';
+            ctx.beginPath();
+            ctx.moveTo(contours[0][0], contours[0][1]);
+            for (var i = 1; i < contours.length; ++i) {
+                ctx.lineTo(contours[i][0], contours[i][1]);
+            }
+            ctx.lineTo(contours[0][0], contours[0][1]);
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        // init_shadow();
+
+        // init_morph();
 
     </script>
 </body>
