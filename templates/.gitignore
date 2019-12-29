@@ -1,3 +1,6 @@
-# ignore all except .gitignore file
+# ignore all
 *
+# except .gitignore file
 !.gitignore
+!template_1/
+!template_1/*
