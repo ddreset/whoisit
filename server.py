@@ -333,7 +333,8 @@ if __name__ == "__main__":
         # "certfile": os.path.join(os.path.dirname(__file__), "artifacts", "domain.crt"),
         # "keyfile": os.path.join(os.path.dirname(__file__), "artifacts", "domain.key")}
     )
-    http_server.listen(7788)
+    port = int(os.getenv('PORT', 7788))
+    http_server.listen(port, address='0.0.0.0')
     # webbrowser.open("https://localhost:7788/index.html")
     tornado.ioloop.IOLoop.instance().start()
     runner.close_down()
