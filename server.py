@@ -328,10 +328,11 @@ def make_app():
 
 if __name__ == "__main__":
     app = make_app()
-    http_server = tornado.httpserver.HTTPServer(app, ssl_options={
-        "certfile": os.path.join(os.path.dirname(__file__), "artifacts", "domain.crt"),
-        "keyfile": os.path.join(os.path.dirname(__file__), "artifacts", "domain.key")
-    })
+    http_server = tornado.httpserver.HTTPServer(app, 
+    # ssl_options={
+        # "certfile": os.path.join(os.path.dirname(__file__), "artifacts", "domain.crt"),
+        # "keyfile": os.path.join(os.path.dirname(__file__), "artifacts", "domain.key")}
+    )
     http_server.listen(7788)
     # webbrowser.open("https://localhost:7788/index.html")
     tornado.ioloop.IOLoop.instance().start()

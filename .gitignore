@@ -1,4 +1,5 @@
 # security files
+/artifacts
 *.crt
 *.key
 *.pem
