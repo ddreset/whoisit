@@ -37,7 +37,7 @@ function init_preprocessing(input_width, display_container, sample_container, on
     let disp_offset_x = 0;
     let disp_offset_y = 0;
 
-    let mode = 0;
+    let mode = 0; // 0 - calibration mode; 2 - classification mode
     let mode_steps = 0
 
     // tracking
@@ -101,23 +101,23 @@ function init_preprocessing(input_width, display_container, sample_container, on
 
         videoElement = $('<video autoplay="true" control="true" playsinline="true" id="videoInput" width="' + width + '" height="' + height + '"></video>');
         body.append(videoElement);
-        videoElement.hide();
+        // videoElement.hide();
 
         canvasElement = $('<canvas id="canvasFrame" width="' + width + '" height="' + height + '"></canvas>');
         body.append(canvasElement);
-        canvasElement.hide();
+        // canvasElement.hide();
         canvasFrame = document.getElementById("canvasFrame"); // canvasFrame is the id of <canvas>
         context = canvasFrame.getContext("2d");
 
         canvasElement = $('<canvas id="canvasOutput" width="' + disp_width + '" height="' + disp_height + '"></canvas>');
         display_container.append(canvasElement);
-        rawFrame = document.getElementById("canvasOutput");
-        rawContext = rawFrame.getContext("2d");
+        // rawFrame = document.getElementById("canvasOutput");
+        // rawContext = rawFrame.getContext("2d");
 
         capture_res = Math.min(width, height)*capture_res_percent;
         dataElement = $('<canvas id="dataFrame" width="' + capture_res + '" height="' + capture_res + '"></canvas>');
         body.append(dataElement);
-        dataElement.hide();
+        // dataElement.hide();
 
         capture_x = width*0.25;
         capture_y = height/2;
@@ -141,7 +141,7 @@ function init_preprocessing(input_width, display_container, sample_container, on
 
         src = new cv.Mat(height, width, cv.CV_8UC4);
         src_cap = new cv.Mat(capture_res, capture_res, cv.CV_8UC4, new cv.Scalar(255, 255, 255, 255));
-        src_disp = new cv.Mat(disp_height, disp_width, cv.CV_8UC4, new cv.Scalar(255, 255, 255, 255));
+        // src_disp = new cv.Mat(disp_height, disp_width, cv.CV_8UC4, new cv.Scalar(255, 255, 255, 255));
 
         hsv = new cv.Mat(capture_res, capture_res, cv.CV_8UC4);
         dst = new cv.Mat(capture_res, capture_res, cv.CV_8UC1);
@@ -185,8 +185,6 @@ function init_preprocessing(input_width, display_container, sample_container, on
             // cv.imshow("canvasOutput", src_disp);
 
         }else if(mode == 2) {
-
-
             cv.cvtColor(src_cap, hsv, cv.COLOR_RGB2HSV);
 
             let HSVPlanes = new cv.MatVector();
@@ -295,6 +293,7 @@ function init_preprocessing(input_width, display_container, sample_container, on
             };
 
             $.post("/classify", package, function(data, status, xhr) {
+                console.log("post /classify");
                 console.log(data);
                 var json = JSON.parse(data);
                 on_inferred(json.reference, json["classes"][0], json["raw"][0]);
