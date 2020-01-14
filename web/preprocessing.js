@@ -101,11 +101,11 @@ function init_preprocessing(input_width, display_container, sample_container, on
 
         videoElement = $('<video autoplay="true" control="true" playsinline="true" id="videoInput" width="' + width + '" height="' + height + '"></video>');
         body.append(videoElement);
-        // videoElement.hide();
+        videoElement.hide();
 
         canvasElement = $('<canvas id="canvasFrame" width="' + width + '" height="' + height + '"></canvas>');
         body.append(canvasElement);
-        // canvasElement.hide();
+        canvasElement.hide();
         canvasFrame = document.getElementById("canvasFrame"); // canvasFrame is the id of <canvas>
         context = canvasFrame.getContext("2d");
 
@@ -117,7 +117,7 @@ function init_preprocessing(input_width, display_container, sample_container, on
         capture_res = Math.min(width, height)*capture_res_percent;
         dataElement = $('<canvas id="dataFrame" width="' + capture_res + '" height="' + capture_res + '"></canvas>');
         body.append(dataElement);
-        // dataElement.hide();
+        dataElement.hide();
 
         capture_x = width*0.25;
         capture_y = height/2;
@@ -304,7 +304,11 @@ function init_preprocessing(input_width, display_container, sample_container, on
     function on_inferred(id, classes, raws){
         var contour_obj = contour_object_list[id];
         contour_obj["class"] = classes;
+        console.log("classes");
+        console.log(classes);
         contour_obj["score"] = raws;
+        console.log("raws");
+        console.log(raws);
 
         previewContext.fillStyle="#FFFFFF";
         previewContext.fillRect(40,35,40,20);
@@ -341,6 +345,8 @@ function init_preprocessing(input_width, display_container, sample_container, on
             return [p0[0] * (1 - alpha) + p1[0] * (alpha), p0[1] * (1 - alpha) + p1[1] * (alpha)];
         }
 
+        // raw points may be distributed unevenly
+        // this function returns more evenly-distributed points
         this.re_contour = function(size) {
 
             var len_contour = this.raw_contours.rows;
