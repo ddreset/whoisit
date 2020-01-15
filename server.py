@@ -68,6 +68,7 @@ class ImageHandler(tornado.web.RequestHandler):
             else:
                 if runner.label_dict is not None:
                     classes = runner.label_dict[str(classes[0])]
+                    print("classes:",classes)
                 msg = ("{\"reference\":\"" + str(ref_number) + "\","
                        "\"classes\":" + str(classes) + ","
                        "\"raw\":" + util.np2json(raw) + ","
@@ -87,7 +88,7 @@ class ImageHandler(tornado.web.RequestHandler):
                 if runner.label_dict is not None:
                     classes = runner.label_dict[str(classes[0])]
                 msg = ("{\"reference\":\"" + str(ref_number) + "\","
-                       "\"classes\":" + classes + ","
+                       "\"classes\":" + str(classes) + ","
                        "\"raw\":" + util.np2json(raw) + ","
                        "\"flip\":" + util.np2json(flip_or_not < 0) + "}"
                        )
