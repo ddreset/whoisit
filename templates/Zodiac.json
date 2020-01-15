@@ -1,0 +1,65 @@
+{
+    "date_created": "2020-01-15 16:47:00",
+    "templates": {
+        "1": {
+            "name": "Dog",
+            "thumbnail": "https://whoisit-tornado.herokuapp.com/zodiac/dog.png",
+            "uri": "http://dbpedia.org/page/Dog"
+        },
+	    "2": {
+            "name": "Dragon",
+            "thumbnail": "https://whoisit-tornado.herokuapp.com/zodiac/dragon.png",
+            "uri": "http://dbpedia.org/page/Dragon"
+        },
+	    "3": {
+            "name": "Goat",
+            "thumbnail": "https://whoisit-tornado.herokuapp.com/zodiac/goat.png",
+            "uri": "http://dbpedia.org/page/Goat"
+        },
+	    "4": {
+            "name": "Horse",
+            "thumbnail": "https://whoisit-tornado.herokuapp.com/zodiac/horse.png",
+            "uri": "http://dbpedia.org/page/Horse"
+        },
+	    "5": {
+            "name": "Monkey",
+            "thumbnail": "https://whoisit-tornado.herokuapp.com/zodiac/monkey.png",
+            "uri": "http://dbpedia.org/page/Monkey"
+        },
+	    "6":{
+            "name": "Ox",
+            "thumbnail": "https://whoisit-tornado.herokuapp.com/zodiac/ox.png",
+            "uri": "http://dbpedia.org/page/Ox"
+        },
+	    "7": {
+            "name": "Pig",
+            "thumbnail": "https://whoisit-tornado.herokuapp.com/zodiac/pig.png",
+            "uri": "http://dbpedia.org/page/Pig"
+        },
+	    "8": {
+            "name": "Rabbit",
+            "thumbnail": "https://whoisit-tornado.herokuapp.com/zodiac/rabbit.png",
+            "uri": "http://dbpedia.org/page/Rabbit"
+        },
+	    "9": {
+            "name": "Rat",
+            "thumbnail": "https://whoisit-tornado.herokuapp.com/zodiac/rat.png",
+            "uri": "http://dbpedia.org/page/Rat"
+        },
+	    "10": {
+            "name": "Rooster",
+            "thumbnail": "https://whoisit-tornado.herokuapp.com/zodiac/rooster.png",
+            "uri": "http://dbpedia.org/page/Rooster"
+        },
+	    "11": {
+            "name": "Snake",
+            "thumbnail": "https://whoisit-tornado.herokuapp.com/zodiac/snake.png",
+            "uri": "http://dbpedia.org/page/Snake"
+        },
+	    "12": {
+            "name": "Tiger",
+            "thumbnail": "https://whoisit-tornado.herokuapp.com/zodiac/tiger.png",
+            "uri": "http://dbpedia.org/page/Tiger"
+        }
+    }
+}
