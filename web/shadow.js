@@ -88,7 +88,7 @@ function init_shadow() {
 		var label_dict = {};
 		var oReq_label_dict = new XMLHttpRequest();
 		// should use promise here
-		oReq_label_dict.open("GET", "model/template.json", false);
+		oReq_label_dict.open("GET", "model/template.json", true);
 		oReq_label_dict.responseType = "text";
 		oReq_label_dict.onload = function (oEvent) {
 		    if (this.readyState == 4 && this.status == 200) {
