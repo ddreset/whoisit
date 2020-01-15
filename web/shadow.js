@@ -85,6 +85,18 @@ function init_shadow() {
 
 	function on_ready(weights) {
 
+		var label_dict = {};
+		var oReq_label_dict = new XMLHttpRequest();
+		// should use promise here
+		oReq_label_dict.open("GET", "model/template.json", false);
+		oReq_label_dict.responseType = "text";
+		oReq_label_dict.onload = function (oEvent) {
+		    if (this.readyState == 4 && this.status == 200) {
+				label_dict = JSON.parse(this.responseText);
+			}
+		};
+		oReq_label_dict.send(null);
+
 	    const v = tf.tensor2d(weights[0]["d"], weights[0]["s"]);
 	    const b = tf.tensor1d(weights[1]["d"]);
 
@@ -127,7 +139,6 @@ function init_shadow() {
 			});
 		}
 
-
 		function compare(f0, f1) {
 			return tf.tidy(() => {
 				return tf.exp(tf.sum(tf.squaredDifference(f0.expandDims(1), f1.expandDims(0)), 2).neg());
@@ -135,6 +146,8 @@ function init_shadow() {
 		}
 
 		function get_class_score(response, class_indices) {
+			console.log("get_class_score");
+			console.log(response.gather(class_indices[c], 1));
 			return tf.tidy(() => {
 
 				var class_scores = [];
@@ -150,11 +163,9 @@ function init_shadow() {
 	        return Math.sqrt((p0[0] - p1[0])*(p0[0] - p1[0]) + (p0[1] - p1[1])*(p0[1] - p1[1]));
 	    }
 
-
 		function point_radian(p0, p1){
 		    return Math.atan2(p0[1] - p1[1], p0[0] - p1[0]);
 		}
-
 
 		function radian_diff(r0, r1) {
 		    delta = r0 - r1;
@@ -233,8 +244,8 @@ function init_shadow() {
 			class_scores.data().then(function(class_scores_cpu){
 
 				var indices = sort_indices(class_scores_cpu);
-
-	     		on_inferred_callback(contour_obj.id, re_order(class_list, indices), re_order(class_scores_cpu, indices));
+				var labels = re_order(class_list, indices)
+	     		on_inferred_callback(contour_obj.id, label_dict[labels[0]], re_order(class_scores_cpu, indices));
 	    		input.dispose();
 	    		r0.dispose();
 	    		raw.dispose();

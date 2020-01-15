@@ -62,14 +62,14 @@ class ImageHandler(tornado.web.RequestHandler):
 
         if image is not None:
             frame = util.base64string2array(image[22:])
-            print("frame shape:")
-            print(frame.shape)
             classes, raw, flip_or_not = runner.process(frame)
             if classes is None:
                 self.write("The network has yet been setup.")
             else:
+                if runner.label_dict is not None:
+                    classes = runner.label_dict[str(classes[0])]
                 msg = ("{\"reference\":\"" + str(ref_number) + "\","
-                       "\"classes\":" + util.np2json(classes) + ","
+                       "\"classes\":" + str(classes) + ","
                        "\"raw\":" + util.np2json(raw) + ","
                        "\"flip\":[true]}"
                        )
@@ -84,8 +84,10 @@ class ImageHandler(tornado.web.RequestHandler):
             if classes is None:
                 self.write("The network has yet been setup.")
             else:
+                if runner.label_dict is not None:
+                    classes = runner.label_dict[str(classes[0])]
                 msg = ("{\"reference\":\"" + str(ref_number) + "\","
-                       "\"classes\":" + util.np2json(classes) + ","
+                       "\"classes\":" + classes + ","
                        "\"raw\":" + util.np2json(raw) + ","
                        "\"flip\":" + util.np2json(flip_or_not < 0) + "}"
                        )
@@ -231,6 +233,8 @@ class UpdateDBpediaTemplateHandler(tornado.web.RequestHandler):
             template_index = templates_list.index(animalName)
             result = runner.change_template(template_index)
             msg["templates_list"] = templates_list
+            # update weights and tamplates to ./web/model
+            runner.save_weight_for_web_download()
         else:
             msg["success"] = False
         self.write(msg)
@@ -322,7 +326,8 @@ def make_app():
         (r"/classify/newTemplates", ClassifyHandler),
         (r"/crop", CropHandler),
         (r"/dbpedia/subEntity/([0-9a-zA-Z_]+)", SubAnimalHandler),
-        (r'/(.*)', tornado.web.StaticFileHandler, {'path': static_path})
+        (r'/zodiac/(.*)', tornado.web.StaticFileHandler, {'path': os.path.join(os.path.dirname(__file__), "./web/one_hand_zodiac")}),
+        (r'/(.*)', tornado.web.StaticFileHandler, {'path': static_path}),
     ],debug=True)
 
 

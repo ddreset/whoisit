@@ -4,6 +4,7 @@
 *.key
 *.pem
 # model
+/web/model
 *.h5
 !simplified_unet.h5
 
@@ -16,6 +17,7 @@
 /tasks/categories_generate_temp
 /tasks/categories_temp
 /web/morph_data
+/web/shadow_puppetry
 
 # environment folder
 /venv

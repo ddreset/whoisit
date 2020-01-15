@@ -5,6 +5,7 @@ import numpy as np
 from datetime import datetime
 import imageprocess
 import random
+import json
 
 api_version = "1.0"
 
@@ -141,7 +142,7 @@ def read_template_directory(formatter, path, with_flip=False, return_raw=False):
     pwd = os.path.dirname(os.path.abspath(__file__))
     template_dir = os.path.join(pwd, path)
     if not os.path.exists(template_dir):
-        return data, labels
+        return data, labels, label_dict
 
     raws = []
     for filename in os.listdir(template_dir):
@@ -173,10 +174,16 @@ def read_template_directory(formatter, path, with_flip=False, return_raw=False):
 
     data = np.asarray(data, dtype=np.float32)
     labels = np.asarray(labels, dtype=np.int32)
+    label_dict = None
+    if os.path.exists(template_dir + ".json"):
+        with open(template_dir + ".json") as json_file:
+            json_data = json.load(json_file)
+            label_dict = json_data["templates"]
+
     if return_raw:
-        return data, labels, raws
+        return data, labels, label_dict, raws
     else:
-        return data, labels
+        return data, labels, label_dict
 
 def read_template_urls(formatter, template_list, with_flip=False, return_raw=False):
     data = []

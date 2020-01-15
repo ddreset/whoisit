@@ -14,7 +14,6 @@ weight_set_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "wei
 # content of all set.json
 weight_sets = []
 
-
 def discover_weight_set():
     weight_sets.clear()
     for name in os.listdir(weight_set_path):
@@ -33,7 +32,6 @@ template_set_path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "t
 # name of all folders in ./templates
 template_paths = []
 
-
 def discover_template_set():
     template_paths.clear()
     for name in os.listdir(template_set_path):
@@ -41,9 +39,7 @@ def discover_template_set():
         if os.path.isdir(pwd):
             template_paths.append(name)
 
-
 discover_template_set()
-
 
 class Runner:
 
@@ -54,14 +50,14 @@ class Runner:
         # start with template[0], get pic data array and label array
         self.change_template(0)
         self.collect_template_flag = -1
+        self.save_weight_for_web_download()
 
     def change_template(self, template_index):
         discover_template_set()
         if len(template_paths) < template_index:
             return False
         self.template_index = template_index
-        self.templates, self.template_labels = dataformat.read_template_directory(self.formatter, os.path.join(template_set_path, template_paths[self.template_index]), with_flip=True)
-        print(template_paths[self.template_index])
+        self.templates, self.template_labels, self.label_dict = dataformat.read_template_directory(self.formatter, os.path.join(template_set_path, template_paths[self.template_index]), with_flip=True)
         return True
 
     def use_temporary_template(self, template_list):
@@ -179,6 +175,12 @@ class Runner:
 
         write_model_weight(web_dir, weights, "model/model")
 
+        if self.label_dict is not None:
+            print("writing new template.json")
+            print(self.label_dict)
+            with open(model_dir+"/template.json", "w") as file:
+                json.dump(self.label_dict, file, sort_keys=True, indent=4)
+
     def count_templates(self, folder_name):
         folder_path = os.path.join(template_set_path, folder_name)
         if (not os.path.exists(folder_path)) or (not os.path.isdir(folder_path)):
@@ -193,15 +195,11 @@ class Runner:
         if (not os.path.exists(folder_path)) or (not os.path.isdir(folder_path)):
             os.mkdir(folder_path)
             discover_template_set()
-        # write in to log file
-        with open(template_set_path+"/"+template_name+".txt", "w") as file:
-            json.dump({
-                "templates":templates_list,
-                "date_created": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            }, file, sort_keys=True, indent=4)
 
         label = 1
+        label_dict = {}
         for template in templates_list:
+            label_dict[label] = template
             # crop
             img = crop_mosaic.read_image(template["thumbnail"])
             if img is not None:
@@ -212,6 +210,13 @@ class Runner:
                     cropped.save(folder_path+"/"+str(counter) +"."+str(label)+".0,0,100,100.png")
                     counter = counter + 1
             label = label + 1
+        
+        # write in to log file
+        with open(template_set_path+"/"+template_name+".json", "w") as file:
+            json.dump({
+                "templates":label_dict,
+                "date_created": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            }, file, sort_keys=True, indent=4)
 
 def write_model_weight(root, weights, name):
     outfile_name = name + ".json"

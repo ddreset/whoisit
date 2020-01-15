@@ -2,5 +2,5 @@
 *
 # except .gitignore file
 !.gitignore
-!template_1/
-!template_1/*
+!Zodiac/
+!Zodiac/*

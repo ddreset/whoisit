@@ -296,7 +296,7 @@ function init_preprocessing(input_width, display_container, sample_container, on
                 console.log("post /classify");
                 console.log(data);
                 var json = JSON.parse(data);
-                on_inferred(json.reference, json["classes"][0], json["raw"][0]);
+                on_inferred(json.reference, json["classes"], json["raw"][0]);
             });
         }
     }
@@ -314,7 +314,7 @@ function init_preprocessing(input_width, display_container, sample_container, on
         previewContext.fillRect(40,35,40,20);
         previewContext.fillStyle="#000000";
         previewContext.font="18px Arial";
-        previewContext.fillText(classes[0].toString(), 50, 50);
+        previewContext.fillText(classes["name"], 50, 50);
 
         reset_state();
         if(on_capture_callback != null) {

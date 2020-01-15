@@ -54,18 +54,22 @@
                     if (templateName != "Zodiac") {
                         $.post("/set/dbpedia/" + templateName, null, function (data) {
                             success = data.success;
-                            console.log(data);
                         });
                     } else {
                         var msg = {};
-                        msg["template"] = 0;
+                        var zodiac_index = 0
+                        $.get("/set", function(data) {
+                            data = JSON.parse(data)
+                            zodiac_index = data["templates"].indexOf("Zodiac");
+                        });
+                        msg["template"] = zodiac_index;
                         $.post("/set", msg, function (data) {
                             success = data.success;
-                            console.log(data);
                         });
                     }
                     if (success != false) {
                         el.firstChild.textContent = "scope: " + templateName;
+                        init_shadow();
                     }
                 }
             });
@@ -106,6 +110,7 @@
         drawFrame = document.getElementById("drawFrame"); // canvasFrame is the id of <canvas>
         ctx = drawFrame.getContext("2d");
 
+        // request weights and labels
         init_shadow();
         
         var draw_preview = true;
