@@ -65,9 +65,10 @@
                             data = JSON.parse(data)
                             zodiac_index = data["templates"].indexOf("Zodiac");
                             return zodiac_index;
-                        }).then( (index)=>{
+                        }).then( ()=>{
                             msg["template"] = zodiac_index;
                             $.post("/set", msg, function (data) {
+                                data = JSON.parse(data)
                                 success = data.success;
                                 if (success != false) {
                                     el.firstChild.textContent = "scope: " + templateName;
