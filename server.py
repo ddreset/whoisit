@@ -218,7 +218,7 @@ class SetHandler(tornado.web.RequestHandler):
 
         runner.save_weight_for_web_download()
 
-        self.write("{\"result\":" + ("true" if result else "false") + "}")
+        self.write("{\"success\":" + ("true" if result else "false") + "}")
 
 class UpdateDBpediaTemplateHandler(tornado.web.RequestHandler):
     def post(self,animalName):
@@ -227,11 +227,9 @@ class UpdateDBpediaTemplateHandler(tornado.web.RequestHandler):
         msg = {}
         if len(animals) > 0:
             file_num = runner.count_templates(animalName)
+            # if this template folder is empty, update it
             if file_num == 0:
                 runner.update_templates_folder(animalName, animals, cropper)
-                msg["success"] = True
-            else:
-                msg["success"] = None
             # change template 
             templates_list,__ = runner.get_template_sets()
             template_index = templates_list.index(animalName)
@@ -239,6 +237,7 @@ class UpdateDBpediaTemplateHandler(tornado.web.RequestHandler):
             msg["templates_list"] = templates_list
             # update weights and tamplates to ./web/model
             runner.save_weight_for_web_download()
+            msg["success"] = True
         else:
             msg["success"] = False
         self.write(msg)

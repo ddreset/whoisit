@@ -39,6 +39,8 @@ function init_preprocessing(input_width, display_container, sample_container, on
 
     let mode = 0; // 0 - calibration mode; 2 - classification mode
     let mode_steps = 0
+    let result_index = 0
+    let max_results = 6 // classify 5 times each round
 
     // tracking
     let tx = -1;
@@ -236,6 +238,7 @@ function init_preprocessing(input_width, display_container, sample_container, on
                     if (in_criterior(cnt.cx, cnt.cy)) {
                         if (new Date().getTime() - stamp > countdown) {
                             capture(cnt);
+                            result_index = result_index + 1;
                         }
                     } else {
                         stamp = new Date().getTime();
@@ -265,10 +268,11 @@ function init_preprocessing(input_width, display_container, sample_container, on
 
         }
 
-
-        // schedule next one.
-        let delay = 1000 / FPS - (Date.now() - begin);
-        thread = setTimeout(processVideo, delay);
+        if (result_index < max_results) {
+            // schedule next one.
+            let delay = 1000 / FPS - (Date.now() - begin);
+            thread = setTimeout(processVideo, delay);
+        }
     }
     // schedule first one.
 
@@ -294,7 +298,6 @@ function init_preprocessing(input_width, display_container, sample_container, on
 
             $.post("/classify", package, function(data, status, xhr) {
                 console.log("post /classify");
-                console.log(data);
                 var json = JSON.parse(data);
                 on_inferred(json.reference, json["classes"], json["raw"][0]);
             });
@@ -304,11 +307,7 @@ function init_preprocessing(input_width, display_container, sample_container, on
     function on_inferred(id, classes, raws){
         var contour_obj = contour_object_list[id];
         contour_obj["class"] = classes;
-        console.log("classes");
-        console.log(classes);
         contour_obj["score"] = raws;
-        console.log("raws");
-        console.log(raws);
 
         previewContext.fillStyle="#FFFFFF";
         previewContext.fillRect(40,35,40,20);
@@ -316,6 +315,7 @@ function init_preprocessing(input_width, display_container, sample_container, on
         previewContext.font="18px Arial";
         previewContext.fillText(classes["name"], 50, 50);
 
+        display_result(classes)
         reset_state();
         if(on_capture_callback != null) {
             on_capture_callback(contour_obj);
@@ -323,6 +323,20 @@ function init_preprocessing(input_width, display_container, sample_container, on
         delete contour_object_list[id];
     };
 
+    function display_result(class_info) {
+        var resultElement = $('<div></div>').addClass("col s4 m2");
+        var img = $('<img src="'+class_info["thumbnail"]+'" alt='+class_info["name"]+'>');
+        img.on("click", function(){
+            chooseResult(this);
+        });
+        var name = $('<p>'+class_info["name"]+'</p>');
+        resultElement.append(img).append(name);
+        $("#results_container").append(resultElement);
+    }
+
+    function chooseResult(element) {
+        alert(element.alt);
+    }
 
     function Contour_Object(contours) {
     	this.id = new Date().getTime();
@@ -413,6 +427,8 @@ function init_preprocessing(input_width, display_container, sample_container, on
             reset_state();
             mode = 0;
             mode_steps = 0;
+            result_index = 0;
+            console.log("restart, mode:"+mode+", mode_steps: "+mode_steps+", result_index: "+result_index);
         },
         shutdown: function() {
             stop_stream();
