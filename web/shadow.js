@@ -90,6 +90,7 @@ function init_shadow() {
 		// should use promise here
 		oReq_label_dict.open("GET", "model/template.json", true);
 		oReq_label_dict.responseType = "text";
+		oReq_label_dict.setRequestHeader('Cache-Control', 'no-cache');
 		oReq_label_dict.onload = function (oEvent) {
 		    if (this.readyState == 4 && this.status == 200) {
 				label_dict = JSON.parse(this.responseText);
