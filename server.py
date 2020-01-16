@@ -67,10 +67,11 @@ class ImageHandler(tornado.web.RequestHandler):
                 self.write("The network has yet been setup.")
             else:
                 if runner.label_dict is not None:
-                    classes = runner.label_dict[str(classes[0])]
-                    print("classes:",classes)
+                    classes = json.dumps(runner.label_dict[str(classes[0])])
+                else:
+                    classes = str(classes)
                 msg = ("{\"reference\":\"" + str(ref_number) + "\","
-                       "\"classes\":" + str(classes) + ","
+                       "\"classes\":" + classes + ","
                        "\"raw\":" + util.np2json(raw) + ","
                        "\"flip\":[true]}"
                        )
@@ -86,9 +87,11 @@ class ImageHandler(tornado.web.RequestHandler):
                 self.write("The network has yet been setup.")
             else:
                 if runner.label_dict is not None:
-                    classes = runner.label_dict[str(classes[0])]
+                    classes = json.dumps(runner.label_dict[str(classes[0])])
+                else:
+                    classes = str(classes)
                 msg = ("{\"reference\":\"" + str(ref_number) + "\","
-                       "\"classes\":" + str(classes) + ","
+                       "\"classes\":" + classes + ","
                        "\"raw\":" + util.np2json(raw) + ","
                        "\"flip\":" + util.np2json(flip_or_not < 0) + "}"
                        )

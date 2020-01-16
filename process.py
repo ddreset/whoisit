@@ -176,8 +176,6 @@ class Runner:
         write_model_weight(web_dir, weights, "model/model")
 
         if self.label_dict is not None:
-            print("writing new template.json")
-            print(self.label_dict)
             with open(model_dir+"/template.json", "w") as file:
                 json.dump(self.label_dict, file, sort_keys=True, indent=4)
 
