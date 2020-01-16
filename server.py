@@ -8,6 +8,7 @@ import dataformat
 import util
 import crop_mosaic
 import semanticquery
+import gc
 
 
 static_path = os.path.join(os.path.dirname(__file__), "./web")
@@ -218,6 +219,7 @@ class SetHandler(tornado.web.RequestHandler):
 
         runner.save_weight_for_web_download()
 
+        gc.collect()
         self.write("{\"success\":" + ("true" if result else "false") + "}")
 
 class UpdateDBpediaTemplateHandler(tornado.web.RequestHandler):
@@ -240,6 +242,7 @@ class UpdateDBpediaTemplateHandler(tornado.web.RequestHandler):
             msg["success"] = True
         else:
             msg["success"] = False
+        gc.collect()
         self.write(msg)
 
 # download current weight set and templates
@@ -287,6 +290,7 @@ class ClassifyHandler(tornado.web.RequestHandler):
                        "\"raw\":" + util.np2json(raw) + ","
                        "\"flip\":[true]}"
                        )
+                gc.collect()
                 self.write(msg)
 
 # crop 1 pic
