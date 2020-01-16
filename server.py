@@ -219,8 +219,8 @@ class SetHandler(tornado.web.RequestHandler):
 
         runner.save_weight_for_web_download()
 
-        gc.collect()
         self.write("{\"success\":" + ("true" if result else "false") + "}")
+        print(gc.collect())
 
 class UpdateDBpediaTemplateHandler(tornado.web.RequestHandler):
     def post(self,animalName):

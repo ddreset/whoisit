@@ -60,18 +60,20 @@
                         });
                     } else {
                         var msg = {};
-                        var zodiac_index = 0
+                        // var zodiac_index = 0
                         $.get("/set", function(data) {
                             data = JSON.parse(data)
                             zodiac_index = data["templates"].indexOf("Zodiac");
-                        });
-                        msg["template"] = zodiac_index;
-                        $.post("/set", msg, function (data) {
-                            success = data.success;
-                            if (success != false) {
-                                el.firstChild.textContent = "scope: " + templateName;
-                                init_shadow();
-                            }
+                            return zodiac_index;
+                        }).then( (index)=>{
+                            msg["template"] = zodiac_index;
+                            $.post("/set", msg, function (data) {
+                                success = data.success;
+                                if (success != false) {
+                                    el.firstChild.textContent = "scope: " + templateName;
+                                    init_shadow();
+                                }
+                            })
                         });
                     }
                 }
