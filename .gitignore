@@ -6,7 +6,7 @@
 # model
 /web/model/*
 *.h5
-!simplified_unet.h5
+# !simplified_unet.h5
 
 # auto generted files
 /__pycache__

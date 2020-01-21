@@ -2,6 +2,6 @@
 *
 # except .gitignore file
 !.gitignore
-!Zodiac/
-!Zodiac/*
-!Zodiac.json
+# !Zodiac/
+# !Zodiac/*
+# !Zodiac.json
